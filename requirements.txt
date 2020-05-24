@@ -1,0 +1,17 @@
+cycler
+h5py
+joblib
+Keras
+Keras-Applications
+Keras-Preprocessing
+kiwisolver
+matplotlib
+numpy
+pkg-resources
+pyparsing
+python-dateutil
+PyYAML
+scikit-learn
+scipy
+six
+threadpoolctl
