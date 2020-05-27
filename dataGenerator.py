@@ -10,26 +10,28 @@ classes = [
     "task_working_memory"
 ]
 SUBJECT_1 = "105923"
-TRAIN_TYPE = "train"
-TEST_TYPE = "test"
 INTEGER_DIVISION_WINDOW_SIZES = [1, 2, 4, 8, 61, 73, 122, 146, 244, 292, 488, 584, 4453, 8906, 17812]
 
 
-def data_generator(data_type):
+def data_generator(folder, data_type, window_size):
     """
     Generator that prepares the data and labels and the yields a tuple of x, y based on the step of the epoch
+    :param folder:
     :param data_type:
+    :param window_size:
     :return: x, y
     """
+    if not window_size in INTEGER_DIVISION_WINDOW_SIZES:
+        raise Exception("Unsupported window size {}, only {} are supported".format(window_size, INTEGER_DIVISION_WINDOW_SIZES))
     # Scan the train directory for files
-    train_files = glob.glob("{}/train/*.h5".format(data_type))
+    files = glob.glob("{}/{}/*.h5".format(folder, data_type))
 
-    # Read all the files and for each file save the data and labels (same indexing as train_files)
+    # Read all the files and for each file save the data and labels (same indexing as files)
     data = []
     labels = []
-    for i in range(32):
-        dataset_name = "_".join(train_files[i].split("/")[-1].split("_")[:-1])
-        data.append(np.transpose(h5py.File(train_files[i], "r").get(dataset_name)[()]).reshape((292, 122, 248)))
+    for i in range(len(files)):
+        dataset_name = "_".join(files[i].split("/")[-1].split("_")[:-1])
+        data.append(np.transpose(h5py.File(files[i], "r").get(dataset_name)[()]).reshape((35624 // window_size, window_size, 248)))
         labels.append(get_y(dataset_name))
 
     # Start the generator
@@ -37,7 +39,7 @@ def data_generator(data_type):
     while True:
         yield data[current_file_idx], labels[current_file_idx]
         current_file_idx += 1
-        if current_file_idx == len(train_files):
+        if current_file_idx == len(files):
             current_file_idx = 0
 
 
