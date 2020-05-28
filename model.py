@@ -1,6 +1,6 @@
 import keras
 import random
-from keras.layers import Dense
+from keras.layers import Dense, Dropout, BatchNormalization
 from keras.layers import Flatten
 from keras.layers.convolutional import Conv1D
 from keras.layers.convolutional import MaxPooling1D
@@ -12,37 +12,44 @@ N_CLASSES = 4
 
 
 class CNNModel:
-    def __init__(self, input_shape):
+    def __init__(self, type, epochs, input_shape):
         self.name = "CNN"
+        self.type = type
+        self.epochs = epochs
         self.history = None
         self.model = Sequential()
-        self.model.add(Conv1D(filters=64, kernel_size=2, activation='relu', input_shape=input_shape))
-        self.model.add(MaxPooling1D(pool_size=2))
+        self.model.add(Conv1D(filters=64, kernel_size=24, activation='relu', input_shape=input_shape))
+        self.model.add(Conv1D(filters=18, kernel_size=24, activation='relu', input_shape=input_shape))
+        self.model.add(MaxPooling1D(pool_size=24))
+        self.model.add(BatchNormalization())
+        self.model.add(Dropout(0.2))
         self.model.add(Flatten())
         self.model.add(Dense(122, activation='relu'))
-        self.model.add(Dense(N_CLASSES))
+        self.model.add(Dense(N_CLASSES, activation='softmax'))
         self.model.compile(
             loss=keras.losses.categorical_crossentropy,
-            optimizer=keras.optimizers.Adam(),
+            optimizer=keras.optimizers.adam(),
             metrics=['accuracy']
         )
 
-    def fit(self, generator, epochs, steps_per_epoch):
+    def fit(self, x, y, callbacks):
         self.history = self.model.fit(
-            x=generator,
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
+            x=x,
+            y=y,
+            epochs=self.epochs,
+            callbacks=callbacks
         )
-        self.save_model(epochs)
+        self.save_model()
 
-    def predict(self, generator, steps):
-        return self.model.predict(generator, steps=steps)
+    def predict(self, x):
+        return self.model.predict(x)
 
-    def save_model(self, epochs):
-        self.model.save('saved_models/{}/{}_epochs_{}'.format(
+    def save_model(self):
+        self.model.save('saved_models/{}/{}_{}_epochs_{}'.format(
             self.name,
             datetime.today().strftime("%Y%m%d_%H_%M_%S"),
-            epochs
+            self.type,
+            self.epochs
         ))
 
     def load_model(self, name):

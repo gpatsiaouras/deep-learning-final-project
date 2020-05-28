@@ -1,19 +1,45 @@
-import matplotlib.pyplot as plt
-from scipy import signal
+from datetime import datetime
+from keras.callbacks import TensorBoard
 from sklearn.metrics import confusion_matrix
 
+import numpy as np
 from model import CNNModel
-from dataGenerator import data_generator
+from dataGenerator import get_all_dataset
+
+log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+window_size = 122
+
+
+def evaluate_model(x_test, y_test):
+    evaluation = model.model.evaluate(x_test, y_test)
+    print("Test Loss: {}".format(evaluation[0]))
+    print("Test Accuracy: {}".format(evaluation[1]))
+    y_pred = model.model.predict(x=x_test)
+    print(confusion_matrix(np.argmax(y_test, axis=1), np.argmax(y_pred, axis=1)))
 
 
 if __name__ == "__main__":
-    model = CNNModel((122, 248))
+    # For Cross
+    dataset_type = "Cross"
+    x_train, y_train = get_all_dataset(dataset_type, "train", window_size)
+    x_test1, y_test1 = get_all_dataset(dataset_type, "test1", window_size)
+    x_test2, y_test2 = get_all_dataset(dataset_type, "test2", window_size)
+    x_test3, y_test3 = get_all_dataset(dataset_type, "test3", window_size)
+
+    # For Intra
+    # dataset_type = "Intra"
+    # x_train, y_train = get_all_dataset(dataset_type, "train", window_size)
+    # x_test, y_test = get_all_dataset(dataset_type, "test", window_size)
+
+    model = CNNModel(type=dataset_type, epochs=200, input_shape=(x_train.shape[1], x_train.shape[2]))
     model.fit(
-        generator=data_generator("Intra", "train", 122),
-        epochs=5,
-        steps_per_epoch=32,
+        x=x_train,
+        y=y_train,
+        callbacks=[tensorboard_callback]
     )
-    predictions = model.predict(
-        generator=data_generator("Intra", "test", 122),
-        steps=8
-    )
+
+    evaluate_model(x_test1, y_test1)
+    evaluate_model(x_test2, y_test2)
+    evaluate_model(x_test3, y_test3)
+
