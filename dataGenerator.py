@@ -16,6 +16,7 @@ file_numbers = {
     "train": [1, 2, 3, 4, 5, 6, 7, 8]
 }
 
+
 def data_generator(folder, data_type, window_size):
     """
     Generator that prepares the data and labels and the yields a tuple of x, y based on the step of the epoch

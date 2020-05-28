@@ -12,14 +12,14 @@ N_CLASSES = 4
 
 
 class CNNModel:
-    def __init__(self, type, epochs, input_shape):
+    def __init__(self, type, epochs, window_size, input_shape):
         self.name = "CNN"
         self.type = type
         self.epochs = epochs
+        self.window_size = window_size
         self.history = None
         self.model = Sequential()
         self.model.add(Conv1D(filters=64, kernel_size=24, activation='relu', input_shape=input_shape))
-        self.model.add(Conv1D(filters=18, kernel_size=24, activation='relu', input_shape=input_shape))
         self.model.add(MaxPooling1D(pool_size=24))
         self.model.add(BatchNormalization())
         self.model.add(Dropout(0.2))
@@ -45,11 +45,12 @@ class CNNModel:
         return self.model.predict(x)
 
     def save_model(self):
-        self.model.save('saved_models/{}/{}_{}_epochs_{}'.format(
+        self.model.save('saved_models/{}/{}_{}_epochs_{}_window_{}'.format(
             self.name,
             datetime.today().strftime("%Y%m%d_%H_%M_%S"),
             self.type,
-            self.epochs
+            self.epochs,
+            self.window_size
         ))
 
     def load_model(self, name):
