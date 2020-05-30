@@ -9,12 +9,7 @@ classes = [
     "task_story_math",
     "task_working_memory"
 ]
-SUBJECT_1 = "105923"
 INTEGER_DIVISION_WINDOW_SIZES = [1, 2, 4, 8, 61, 73, 122, 146, 244, 292, 488, 584, 4453, 8906, 17812]
-file_numbers = {
-    "test": [9, 10],
-    "train": [1, 2, 3, 4, 5, 6, 7, 8]
-}
 
 
 def data_generator(folder, data_type, window_size):
