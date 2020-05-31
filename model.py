@@ -1,9 +1,4 @@
 import numpy as np
-import keras
-from keras.layers import Dense, Dropout, BatchNormalization
-from keras.layers import Flatten
-from keras.layers.convolutional import Conv1D
-from keras.layers.convolutional import MaxPooling1D
 from keras.models import Sequential
 from keras.models import load_model
 from datetime import datetime
@@ -13,43 +8,29 @@ from sklearn.metrics import confusion_matrix
 N_CLASSES = 4
 
 
-class CNNModel:
+class BaseModel:
     def __init__(self, type, epochs, window_size, input_shape):
-        self.name = "CNN"
+        self.name = "Base"
         self.type = type
         self.epochs = epochs
         self.window_size = window_size
         self.history = None
+        # Model comes from child class
         self.model = Sequential()
-        self.model.add(Conv1D(filters=64, kernel_size=3, activation="relu", input_shape=input_shape))
-        self.model.add(MaxPooling1D(pool_size=3))
-        self.model.add(BatchNormalization())
-        self.model.add(Dropout(0.2))
-        # self.model.add(Conv1D(filters=32, kernel_size=3, activation="relu", input_shape=input_shape))
-        # self.model.add(MaxPooling1D(pool_size=3))
-        # self.model.add(BatchNormalization())
-        # self.model.add(Dropout(0.2))
-        self.model.add(Flatten())
-        self.model.add(Dense(N_CLASSES, activation="softmax"))
-        self.model.compile(
-            loss=keras.losses.categorical_crossentropy,
-            optimizer=keras.optimizers.adam(),
-            metrics=["accuracy"]
-        )
-        print(self.model.summary())
 
-    def fit(self, x, y, callbacks):
+    def fit(self, x, y, callbacks, validation_data=None):
         self.history = self.model.fit(
             x=x,
             y=y,
             epochs=self.epochs,
+            validation_data=validation_data,
             callbacks=callbacks
         )
 
     def predict(self, x):
         return self.model.predict(x)
 
-    def evaluate(self, x_test, y_test):
+    def evaluate(self, x_test, y_test, callbacks):
         avg_eval = 0
         # Check if x_test, y_test are not lists (single test). If they are not, make them lists of one item
         if not isinstance(x_test, list):
@@ -57,11 +38,13 @@ class CNNModel:
             y_test = [y_test]
 
         # Evaluate model for each test
+        accuracies = []
         for i in range(len(x_test)):
             print("Test " + str(i + 1))
-            evaluation = self.model.evaluate(x_test[i], y_test[i], verbose=0)
+            evaluation = self.model.evaluate(x_test[i], y_test[i], verbose=0, callbacks=callbacks)
             print("Loss: {:.2f}, Accuracy: {:.2f}".format(evaluation[0], evaluation[1]))
-            # Confusion Matrix
+            accuracies.append(evaluation[1])
+            # Confusion Matrixe
             y_pred = self.model.predict(x=x_test[i])
             print(confusion_matrix(np.argmax(y_test[i], axis=1), np.argmax(y_pred, axis=1)))
             avg_eval += evaluation[1]
@@ -73,6 +56,8 @@ class CNNModel:
         # Save high performing models
         if avg_eval > 0.7:
             self.save_model(avg_eval)
+
+        return accuracies
 
     def save_model(self, accuracy):
         filename = "saved_models/{}/{}_{}_e{}_w{}_acc{:.2f}".format(

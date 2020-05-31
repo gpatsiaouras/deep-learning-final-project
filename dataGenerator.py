@@ -80,11 +80,14 @@ def get_all_dataset(folder, data_type, window_size):
             scaled_data = (unscaled_data - dataMin) / (dataMax - dataMin)
 
             # Reshape to create windows according to window size
-            scaled_data = scaled_data.reshape((35624 // window_size, window_size, 248))
+            scaled_data = scaled_data.reshape((unscaled_data.shape[0] // window_size, window_size, 248))
 
             # Create zeroed array and replace the current class index with 1 to build label for that file
             # and for that number of windows
-            label = np.zeros((35624 // window_size, 4))
+            label = np.zeros((unscaled_data.shape[0] // window_size, 4))
+            # if data_type == "test2" and class_counter == 3:
+            #     label[:, 2] = 1
+            # else:
             label[:, class_counter] = 1
 
             # Append data and label to the lists
